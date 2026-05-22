@@ -1159,3 +1159,15 @@ git commit -m "feat: complete project management system"
   - 项目进展弹窗加宽到 `1040px`。
   - 富文本编辑器高度提升到 `340px`，移动端为 `260px`，满足至少 10 行备注录入。
 - 验收：`npm run build` 通过，`http://localhost:3000/admin/projects` 返回 200。
+
+### 2026-05-22 登录页视觉升级
+
+- 修复范围：`src/views/admin/Login.vue`。
+- 设计依据：使用 `ui-ux-pro-max` 与 `example-skills:frontend-design`，将登录页调整为浅蓝项目指挥中心风格。
+- 执行：
+  - 登录页从单个居中小卡片改为桌面端左右分栏。
+  - 左侧新增系统品牌区，展示系统名称、项目管理定位、能力标签和交付流程视觉。
+  - 右侧登录卡片改为大尺寸毛玻璃面板，包含欢迎标题、说明文案、大尺寸输入框和登录按钮。
+  - 背景增加浅蓝渐变、网格纹理和柔和光晕，延续管理端浅蓝工作台风格。
+  - 移动端改为上下布局，并隐藏流程装饰，保证登录表单优先可用。
+- 验收：`npm run build` 通过，`http://localhost:3000/admin/login` 返回 200。
