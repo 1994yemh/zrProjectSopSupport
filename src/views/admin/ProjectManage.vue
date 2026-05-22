@@ -23,7 +23,7 @@
       responsive="screen"
     >
       <n-grid-item v-for="project in projects" :key="project.id">
-        <n-card class="project-card" size="small" hoverable>
+        <n-card class="project-card" size="small" hoverable :bordered="false">
           <template #header>
             <n-space align="center" justify="space-between" style="width: 100%">
               <span class="project-name">{{ project.name }}</span>
@@ -564,38 +564,78 @@ onMounted(() => {
 <style scoped>
 .project-page {
   min-height: 100%;
+  color: #15233a;
 }
 
 .page-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 20px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid #f0f0f0;
+  margin-bottom: 22px;
+  padding: 18px 20px;
+  border: 1px solid rgba(92, 160, 220, 0.2);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(229, 246, 255, 0.72));
+  box-shadow: 0 18px 40px rgba(55, 116, 160, 0.1);
+  backdrop-filter: blur(16px);
 }
 
 .page-title {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #13294b;
 }
 
 /* Project Card */
 .project-card {
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
-  border: 1px solid #e8e8e8;
+  position: relative;
+  min-height: 310px;
+  overflow: hidden;
+  border: 1px solid rgba(90, 166, 224, 0.22);
+  border-radius: 16px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.82), rgba(222, 242, 255, 0.64)),
+    radial-gradient(circle at top right, rgba(51, 178, 255, 0.16), transparent 42%);
+  box-shadow: 0 18px 44px rgba(42, 104, 152, 0.12);
+  backdrop-filter: blur(18px);
+  transition: box-shadow 0.22s ease, transform 0.22s ease, border-color 0.22s ease;
+}
+
+.project-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(90deg, rgba(17, 119, 208, 0.18), rgba(38, 202, 213, 0.1), transparent 58%);
+  height: 4px;
 }
 
 .project-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+  transform: translateY(-4px);
+  border-color: rgba(40, 145, 220, 0.38);
+  box-shadow: 0 24px 54px rgba(42, 104, 152, 0.18);
+}
+
+.project-card :deep(.n-card-header) {
+  padding: 18px 18px 8px;
+}
+
+.project-card :deep(.n-card__content) {
+  padding: 8px 18px 14px;
+}
+
+.project-card :deep(.n-card__action) {
+  padding: 12px 14px;
+  border-top: 1px solid rgba(102, 160, 205, 0.16);
+  background: rgba(247, 252, 255, 0.68);
 }
 
 .project-name {
   font-size: 16px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: #102849;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -607,30 +647,30 @@ onMounted(() => {
   align-items: center;
   gap: 6px;
   font-size: 13px;
-  color: #555;
+  color: #4f6380;
   line-height: 1.5;
 }
 
 .meta-icon {
-  color: #8c8c8c;
+  color: #6aa7d9;
   flex-shrink: 0;
 }
 
 .project-stats {
-  padding: 8px 0;
-  border-top: 1px solid #f0f0f0;
-  border-bottom: 1px solid #f0f0f0;
+  padding: 10px 0;
+  border-top: 1px solid rgba(108, 160, 205, 0.18);
+  border-bottom: 1px solid rgba(108, 160, 205, 0.18);
 }
 
 .stat-item {
   font-size: 13px;
-  color: #666;
+  color: #516a88;
 }
 
 .stat-item strong {
   font-size: 16px;
   font-weight: 700;
-  color: #333;
+  color: #0f6fb8;
 }
 
 .project-footer {
@@ -641,7 +681,7 @@ onMounted(() => {
 
 .project-date {
   font-size: 12px;
-  color: #999;
+  color: #7a8ca5;
 }
 
 /* Detail card in summary */

@@ -1,6 +1,6 @@
 
 <template>
-  <n-layout has-sider style="height: 100vh">
+  <n-layout has-sider class="admin-shell" :class="`theme-${themeStore.mode}`">
     <!-- Sidebar -->
     <n-layout-sider
       bordered
@@ -11,9 +11,10 @@
       show-trigger
       @collapse="collapsed = true"
       @expand="collapsed = false"
+      class="admin-sider"
     >
       <div class="brand-title" :class="{ collapsed }">
-        <n-icon size="24" color="#2080f0">
+        <n-icon size="24" class="brand-icon">
           <AppsOutline />
         </n-icon>
         <span v-if="!collapsed" class="brand-text">中锐教育项目管理系统</span>
@@ -48,7 +49,7 @@
             <template #icon>
               <n-icon :component="ColorPaletteOutline" />
             </template>
-            <span class="btn-text">更换主题</span>
+            <span class="btn-text">{{ themeStore.themeLabel }}</span>
           </n-button>
           <n-dropdown :options="userOptions" @select="handleUserAction">
             <n-button text class="user-btn">
@@ -137,35 +138,107 @@ function handleUserAction(key: string) {
 </script>
 
 <style scoped>
+.admin-shell {
+  --admin-primary: #1677d2;
+  --admin-primary-soft: #d9efff;
+  --admin-primary-tint: #eef8ff;
+  --admin-accent: #22c7d6;
+  --admin-ink: #14213d;
+  --admin-muted: #5d6b82;
+  --admin-border: rgba(104, 158, 210, 0.24);
+  --admin-surface: rgba(255, 255, 255, 0.84);
+  --admin-surface-strong: rgba(255, 255, 255, 0.94);
+  height: 100vh;
+  background:
+    linear-gradient(135deg, rgba(230, 246, 255, 0.92) 0%, rgba(247, 252, 255, 0.96) 42%, rgba(234, 248, 250, 0.92) 100%);
+}
+
+.admin-shell.theme-classic {
+  --admin-primary: #2080f0;
+  --admin-primary-soft: #e8f2ff;
+  --admin-primary-tint: #f4f8ff;
+  --admin-accent: #62b6ff;
+  --admin-ink: #182235;
+  --admin-muted: #657287;
+  --admin-border: rgba(142, 165, 193, 0.26);
+  --admin-surface: rgba(255, 255, 255, 0.9);
+  --admin-surface-strong: rgba(255, 255, 255, 0.96);
+  background:
+    linear-gradient(135deg, rgba(244, 248, 255, 0.96) 0%, rgba(255, 255, 255, 0.98) 48%, rgba(238, 247, 255, 0.95) 100%);
+}
+
+.admin-shell :deep(.n-layout) {
+  background: transparent;
+}
+
+.admin-sider {
+  background:
+    linear-gradient(180deg, var(--admin-surface-strong) 0%, rgba(239, 249, 255, 0.86) 100%);
+  border-right: 1px solid var(--admin-border);
+  box-shadow: 10px 0 34px rgba(57, 107, 151, 0.08);
+  backdrop-filter: blur(18px);
+}
+
 .brand-title {
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 10px;
   padding: 16px 12px;
-  min-height: 58px;
+  min-height: 64px;
   white-space: nowrap;
+  border-bottom: 1px solid var(--admin-border);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.72), rgba(232, 247, 255, 0.72));
 }
 
 .brand-title.collapsed {
   padding-inline: 0;
 }
 
+.brand-icon {
+  color: var(--admin-primary);
+  filter: drop-shadow(0 8px 14px rgba(22, 119, 210, 0.18));
+}
+
 .brand-text {
   font-size: 15px;
   font-weight: 700;
-  color: #1a1a1a;
+  color: var(--admin-ink);
   overflow: hidden;
   text-overflow: ellipsis;
 }
 
+:deep(.n-menu) {
+  padding: 12px 10px;
+}
+
+:deep(.n-menu-item-content) {
+  border-radius: 10px;
+  margin-block: 4px;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+:deep(.n-menu-item-content:hover) {
+  background: rgba(222, 241, 255, 0.72);
+}
+
+:deep(.n-menu-item-content.n-menu-item-content--selected) {
+  background:
+    linear-gradient(135deg, rgba(211, 236, 255, 0.95), rgba(228, 250, 252, 0.9));
+  box-shadow: inset 3px 0 0 var(--admin-primary), 0 10px 22px rgba(37, 115, 180, 0.1);
+}
+
 .admin-header {
-  height: 52px;
+  height: 58px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 20px;
-  background: #fff;
+  padding: 0 22px;
+  background: var(--admin-surface);
+  border-bottom: 1px solid var(--admin-border);
+  box-shadow: 0 10px 30px rgba(52, 109, 153, 0.08);
+  backdrop-filter: blur(18px);
 }
 
 .header-left {
@@ -188,13 +261,34 @@ function handleUserAction(key: string) {
 .username {
   font-size: 14px;
   font-weight: 500;
-  color: #444;
+  color: var(--admin-muted);
 }
 
 .admin-content {
-  padding: 20px;
+  position: relative;
+  padding: 24px;
   overflow: auto;
-  background: #f5f7fa;
+  background:
+    radial-gradient(circle at top left, rgba(80, 180, 255, 0.18), transparent 34%),
+    radial-gradient(circle at 80% 10%, rgba(53, 214, 214, 0.14), transparent 30%),
+    linear-gradient(145deg, rgba(239, 248, 255, 0.9), rgba(250, 253, 255, 0.92));
+}
+
+.admin-content::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.46;
+  background-image:
+    linear-gradient(rgba(33, 130, 210, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(33, 130, 210, 0.06) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+.admin-content :deep(> *) {
+  position: relative;
+  z-index: 1;
 }
 
 /* Responsive */

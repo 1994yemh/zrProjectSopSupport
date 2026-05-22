@@ -1144,3 +1144,18 @@ git commit -m "feat: complete project management system"
   - 输入过程中不再频繁弹出保存成功提示。
   - 内容未变化时不调用保存接口。
   - 用户离开当前编辑上下文前，修改内容可自动持久化。
+
+### 2026-05-22 管理端浅蓝风格与主题方案优化
+
+- 修复范围：`src/stores/theme.ts`、`src/App.vue`、`src/components/Layout/AdminLayout.vue`、`src/views/admin/ProjectManage.vue`、`src/components/LifecycleDialog.vue`。
+- 设计依据：使用 `ui-ux-pro-max` 与 `example-skills:frontend-design`，将后台定位为清爽、可扫描、贴合项目管理场景的浅蓝工作台。
+- 主题方案：
+  - 移除原黑色主题，避免与页面局部浅色样式不兼容。
+  - 改为 `ocean/classic` 两个浅色主题，并通过 Naive UI `themeOverrides` 统一主色、状态色和圆角。
+- 页面风格：
+  - 管理端布局增加浅蓝渐变背景、轻量网格纹理、玻璃质感侧边栏和顶部栏。
+  - 项目卡片改为浅蓝毛玻璃卡片，包含顶部光带、柔和阴影和 hover 上浮动效。
+- 富文本：
+  - 项目进展弹窗加宽到 `1040px`。
+  - 富文本编辑器高度提升到 `340px`，移动端为 `260px`，满足至少 10 行备注录入。
+- 验收：`npm run build` 通过，`http://localhost:3000/admin/projects` 返回 200。

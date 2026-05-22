@@ -3,8 +3,8 @@
     v-model:show="dialogVisible"
     title="项目进展"
     preset="card"
-    style="width: 900px; max-width: 94vw; max-height: 88vh"
-    :content-style="{ maxHeight: 'calc(88vh - 88px)', overflowY: 'auto', paddingRight: '12px' }"
+    style="width: 1040px; max-width: 96vw; max-height: 90vh"
+    :content-style="{ maxHeight: 'calc(90vh - 88px)', overflowY: 'auto', paddingRight: '12px' }"
   >
     <n-spin :show="loading">
       <!-- Overall Progress -->
@@ -494,25 +494,29 @@ async function toggleCheck(check: any) {
 }
 
 .editor-wrapper {
-  border: 1px solid #d9d9d9;
-  border-radius: 6px;
+  border: 1px solid rgba(84, 151, 205, 0.28);
+  border-radius: 10px;
   overflow: hidden;
-  transition: border-color 0.2s ease;
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: 0 14px 34px rgba(40, 112, 168, 0.08);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .editor-wrapper:focus-within {
   border-color: #2080f0;
-  box-shadow: 0 0 0 2px rgba(32, 128, 240, 0.1);
+  box-shadow: 0 0 0 3px rgba(32, 128, 240, 0.1), 0 18px 40px rgba(40, 112, 168, 0.12);
 }
 
 .editor-toolbar {
-  border-bottom: 1px solid #e8e8e8;
-  background: #fafafa;
+  border-bottom: 1px solid rgba(84, 151, 205, 0.2);
+  background: linear-gradient(180deg, rgba(248, 252, 255, 0.96), rgba(235, 247, 255, 0.92));
 }
 
 .editor-body {
-  height: 200px;
+  min-height: 340px;
+  height: 340px;
   overflow-y: auto;
+  background: #fff;
 }
 
 /* Override collapse content to allow editor overflow */
@@ -535,7 +539,8 @@ async function toggleCheck(check: any) {
   }
 
   .editor-body {
-    height: 160px;
+    min-height: 260px;
+    height: 260px;
   }
 }
 </style>

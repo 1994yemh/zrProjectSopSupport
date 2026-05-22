@@ -1,5 +1,10 @@
 <template>
-  <n-config-provider :locale="zhCN" :date-locale="dateZhCN" :theme="themeStore.naiveTheme">
+  <n-config-provider
+    :locale="zhCN"
+    :date-locale="dateZhCN"
+    :theme="themeStore.naiveTheme"
+    :theme-overrides="themeStore.themeOverrides"
+  >
     <n-message-provider>
       <n-dialog-provider>
         <router-view />
