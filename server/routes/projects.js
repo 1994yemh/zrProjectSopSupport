@@ -65,12 +65,20 @@ function getCurrentPhase(projectId) {
 function listProjects(req, res) {
   const page = parseInt(req.query.page) || 1
   const pageSize = parseInt(req.query.pageSize) || 10
+  const keyword = (req.query.keyword || '').toString().trim()
   const offset = (page - 1) * pageSize
+  const hasKeyword = keyword.length > 0
 
-  const totalResult = queryOne('SELECT COUNT(*) as total FROM projects')
+  const whereSql = hasKeyword ? 'WHERE name LIKE ?' : ''
+  const whereParams = hasKeyword ? [`%${keyword}%`] : []
+
+  const totalResult = queryOne(`SELECT COUNT(*) as total FROM projects ${whereSql}`, whereParams)
   const total = totalResult ? totalResult.total : 0
 
-  const list = queryAll('SELECT * FROM projects ORDER BY id DESC LIMIT ? OFFSET ?', [pageSize, offset])
+  const list = queryAll(
+    `SELECT * FROM projects ${whereSql} ORDER BY id DESC LIMIT ? OFFSET ?`,
+    [...whereParams, pageSize, offset]
+  )
 
   // Enrich each project with product_count, course_count, current_phase
   const enriched = list.map(p => {

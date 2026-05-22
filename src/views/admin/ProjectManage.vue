@@ -14,6 +14,21 @@
       </n-button>
     </div>
 
+    <!-- Toolbar -->
+    <n-space justify="space-between" class="toolbar">
+      <n-input
+        v-model:value="keyword"
+        placeholder="搜索项目名称"
+        clearable
+        style="width: 300px"
+        @update:value="handleSearch"
+      >
+        <template #prefix>
+          <n-icon :component="SearchOutline" />
+        </template>
+      </n-input>
+    </n-space>
+
     <!-- Card Grid -->
     <n-grid
       class="project-grid"
@@ -315,7 +330,7 @@ import {
 } from 'naive-ui'
 import {
   AddOutline, CreateOutline, DocumentTextOutline, TrashOutline,
-  TrendingUpOutline, FolderOpenOutline, PersonOutline, CalendarOutline,
+  TrendingUpOutline, FolderOpenOutline, PersonOutline, CalendarOutline, SearchOutline,
   HeadsetOutline,
 } from '@vicons/ionicons5'
 import request from '../../utils/request'
@@ -326,6 +341,7 @@ const dialog = useDialog()
 const loading = ref(false)
 const submitting = ref(false)
 const projects = ref<any[]>([])
+const keyword = ref('')
 
 const projectPagination = reactive({
   page: 1,
@@ -410,6 +426,7 @@ async function fetchProjects() {
       params: {
         page: projectPagination.page,
         pageSize: projectPagination.pageSize,
+        keyword: keyword.value,
       },
     })
     projects.value = res.data.list
@@ -428,6 +445,15 @@ function handleProjectPageSizeChange(pageSize: number) {
   projectPagination.pageSize = pageSize
   projectPagination.page = 1
   fetchProjects()
+}
+
+let searchTimer: ReturnType<typeof setTimeout> | null = null
+function handleSearch() {
+  if (searchTimer) clearTimeout(searchTimer)
+  searchTimer = setTimeout(() => {
+    projectPagination.page = 1
+    fetchProjects()
+  }, 300)
 }
 
 async function fetchOptions() {
@@ -571,20 +597,19 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 22px;
-  padding: 18px 20px;
-  border: 1px solid rgba(92, 160, 220, 0.2);
-  border-radius: 14px;
-  background:
-    linear-gradient(135deg, rgba(255, 255, 255, 0.88), rgba(229, 246, 255, 0.72));
-  box-shadow: 0 18px 40px rgba(55, 116, 160, 0.1);
-  backdrop-filter: blur(16px);
+  margin-bottom: 20px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .page-title {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
-  color: #13294b;
+  color: #1a1a1a;
+}
+
+.toolbar {
+  margin-bottom: 18px;
 }
 
 /* Project Card */

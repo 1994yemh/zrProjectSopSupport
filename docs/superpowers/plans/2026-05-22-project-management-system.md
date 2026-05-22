@@ -1171,3 +1171,13 @@ git commit -m "feat: complete project management system"
   - 背景增加浅蓝渐变、网格纹理和柔和光晕，延续管理端浅蓝工作台风格。
   - 移动端改为上下布局，并隐藏流程装饰，保证登录表单优先可用。
 - 验收：`npm run build` 通过，`http://localhost:3000/admin/login` 返回 200。
+
+### 2026-05-22 项目管理搜索与右上角系统描述优化
+
+- 修复范围：`server/routes/projects.js`、`src/views/admin/ProjectManage.vue`、`src/components/Layout/AdminLayout.vue`。
+- 执行：
+  - 项目列表接口新增 `keyword` 参数，支持按项目名称模糊查询。
+  - 项目管理页新增与产品管理一致的顶部工具栏和搜索输入框，加入 300ms 防抖搜索。
+  - 项目管理页顶部标题区视觉回调到和产品管理一致的简洁风格。
+  - 登录后右上角新增系统描述胶囊：`项目交付控制台 / 课程 · 产品 · 生命周期`，并保留主题切换与用户菜单。
+- 验收：`npm run build` 通过，项目管理搜索可用，右上角系统描述样式已更新。

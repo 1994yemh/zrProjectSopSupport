@@ -45,6 +45,13 @@
           </n-breadcrumb>
         </div>
         <div class="header-right">
+          <div class="system-brief">
+            <n-icon size="18" class="system-brief-icon" :component="GitNetworkOutline" />
+            <div class="system-brief-text">
+              <span class="system-brief-title">项目交付控制台</span>
+              <span class="system-brief-subtitle">课程 · 产品 · 生命周期</span>
+            </div>
+          </div>
           <n-button secondary size="small" @click="themeStore.toggleTheme">
             <template #icon>
               <n-icon :component="ColorPaletteOutline" />
@@ -82,7 +89,7 @@ import {
 import {
   AppsOutline, ColorPaletteOutline, CubeOutline,
   FolderOpenOutline, SchoolOutline, PersonCircleOutline,
-  LogOutOutline, HomeOutline, ChevronDownOutline,
+  LogOutOutline, HomeOutline, ChevronDownOutline, GitNetworkOutline,
 } from '@vicons/ionicons5'
 import { useAuthStore } from '../../stores/auth'
 import { useThemeStore } from '../../stores/theme'
@@ -252,6 +259,40 @@ function handleUserAction(key: string) {
   gap: 12px;
 }
 
+.system-brief {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 36px;
+  padding: 0 12px;
+  border: 1px solid rgba(71, 145, 206, 0.22);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(220, 241, 255, 0.7));
+  box-shadow: 0 10px 22px rgba(51, 109, 153, 0.1);
+}
+
+.system-brief-icon {
+  color: var(--admin-primary);
+}
+
+.system-brief-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+
+.system-brief-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #1c3554;
+}
+
+.system-brief-subtitle {
+  margin-top: 2px;
+  font-size: 11px;
+  color: #5e7492;
+}
+
 .user-btn {
   display: flex;
   align-items: center;
@@ -298,6 +339,10 @@ function handleUserAction(key: string) {
   }
 
   .btn-text {
+    display: none;
+  }
+
+  .system-brief {
     display: none;
   }
 
