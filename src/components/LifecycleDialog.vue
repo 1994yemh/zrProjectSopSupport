@@ -3,59 +3,152 @@
     v-model:show="dialogVisible"
     title="项目进展"
     preset="card"
-    style="width: 900px; max-height: 85vh"
-    :content-style="{ maxHeight: 'calc(85vh - 88px)', overflowY: 'auto', paddingRight: '10px' }"
+    style="width: 900px; max-width: 94vw; max-height: 88vh"
+    :content-style="{ maxHeight: 'calc(88vh - 88px)', overflowY: 'auto', paddingRight: '12px' }"
   >
     <n-spin :show="loading">
-      <n-tabs v-model:value="activeTab" type="card">
-        <n-tab-pane v-for="phase in lifecycleData" :key="phase.phase" :name="phase.phase" :tab="phase.label">
-          <!-- Phase progress -->
-          <n-progress type="line" :percentage="getPhaseProgress(phase)" :status="getPhaseProgress(phase) === 100 ? 'success' : 'default'" style="margin-bottom: 16px" />
+      <!-- Overall Progress -->
+      <div class="overall-progress">
+        <n-space align="center" :size="16">
+          <span class="progress-label">整体进度</span>
+          <n-progress
+            type="line"
+            :percentage="overallProgress"
+            :status="overallProgress === 100 ? 'success' : 'default'"
+            :height="8"
+            style="width: 240px"
+          />
+          <n-tag
+            :type="overallProgress === 100 ? 'success' : overallProgress > 0 ? 'warning' : 'default'"
+            size="small"
+            round
+          >
+            {{ overallProgress }}%
+          </n-tag>
+        </n-space>
+      </div>
+
+      <n-tabs v-model:value="activeTab" type="line" animated>
+        <n-tab-pane
+          v-for="phase in lifecycleData"
+          :key="phase.phase"
+          :name="phase.phase"
+          :tab="phase.label">
+          <!-- Phase Progress -->
+          <div class="phase-progress-bar">
+            <n-space align="center" :size="12">
+              <span class="phase-progress-label">{{ phase.label }}进度</span>
+              <n-progress
+                type="line"
+                :percentage="getPhaseProgress(phase)"
+                :status="getPhaseProgress(phase) === 100 ? 'success' : 'default'"
+                :height="6"
+                style="width: 200px"
+                :show-indicator="false"
+              />
+              <span class="phase-progress-text">
+                {{ getPhasePassedCount(phase) }} / {{ getPhaseTotalCount(phase) }}
+              </span>
+            </n-space>
+          </div>
 
           <!-- Sub-items as collapsible panels -->
           <n-collapse @update:expanded-names="handleCollapseToggle">
-            <n-collapse-item v-for="item in phase.steps" :key="item.id" :name="item.id">
+            <n-collapse-item
+              v-for="item in phase.steps"
+              :key="item.id"
+              :name="item.id"
+            >
               <template #header>
                 <n-space align="center" :size="8">
-                  <span>{{ item.step_name }}</span>
-                  <n-tag v-if="getItemProgress(item) === 100" type="success" size="tiny">已完成</n-tag>
+                  <n-icon
+                    size="18"
+                    :component="getItemProgress(item) === 100 ? CheckmarkCircleOutline : getItemProgress(item) > 0 ? TimeOutline : EllipseOutline"
+                    :color="getItemProgress(item) === 100 ? '#18a058' : getItemProgress(item) > 0 ? '#f0a020' : '#c0c4cc'"
+                  />
+                  <span class="step-name">{{ item.step_name }}</span>
+                  <n-tag
+                    v-if="getItemProgress(item) === 100"
+                    type="success"
+                    size="tiny"
+                    round
+                  >
+                    已完成
+                  </n-tag>
+                  <n-tag
+                    v-else-if="getItemProgress(item) > 0"
+                    type="warning"
+                    size="tiny"
+                    round
+                  >
+                    {{ getItemProgress(item) }}%
+                  </n-tag>
                 </n-space>
               </template>
 
               <!-- Check list -->
-              <n-space vertical :size="8">
-                <div v-for="check in item.checks" :key="check.id" style="display: flex; align-items: center; gap: 8px">
-                  <n-tag
-                    :type="check.is_passed === true ? 'success' : check.is_passed === false ? 'error' : 'default'"
-                    size="small"
-                    round
-                    style="cursor: pointer; min-width: 60px; text-align: center"
-                    @click="toggleCheck(check)"
-                  >
-                    {{ check.is_passed === true ? '通过' : check.is_passed === false ? '不通过' : '未检查' }}
-                  </n-tag>
-                  <span>{{ check.check_content }}</span>
+              <div class="checklist" role="list">
+                <div
+                  v-for="check in item.checks"
+                  :key="check.id"
+                  class="check-item"
+                  role="listitem"
+                  tabindex="0"
+                  :aria-label="`${check.check_content}，当前状态：${getCheckStatusText(check.is_passed)}，点击切换状态`"
+                  @click="toggleCheck(check)"
+                  @keydown.enter="toggleCheck(check)"
+                  @keydown.space.prevent="toggleCheck(check)"
+                >
+                  <div class="check-status" aria-hidden="true">
+                    <div
+                      class="status-badge"
+                      :class="{
+                        'is-passed': check.is_passed === true,
+                        'is-failed': check.is_passed === false,
+                        'is-pending': check.is_passed === null,
+                      }"
+                    >
+                      <n-icon
+                        v-if="check.is_passed === true"
+                        size="14"
+                        :component="CheckmarkOutline"
+                      />
+                      <n-icon
+                        v-else-if="check.is_passed === false"
+                        size="14"
+                        :component="CloseOutline"
+                      />
+                      <n-icon
+                        v-else
+                        size="14"
+                        :component="RemoveOutline"
+                      />
+                    </div>
+                  </div>
+                  <span class="check-content">{{ check.check_content }}</span>
                 </div>
-              </n-space>
+              </div>
 
               <!-- Notes -->
-              <n-divider />
-              <div class="lifecycle-editor">
-                <Toolbar
-                  :editor="editorInstances[item.id]"
-                  :defaultConfig="toolbarConfig"
-                  mode="simple"
-                  style="border-bottom: 1px solid #e0e0e6"
-                />
-                <Editor
-                  :defaultConfig="getEditorConfig()"
-                  mode="simple"
-                  v-model="item._noteContent"
-                  style="height: 200px; overflow-y: auto"
-                  @onCreated="(editor: any) => handleEditorCreated(item.id, editor)"
-                  @onChange="(editor: any) => handleEditorChange(item.id, editor)"
-                  @onBlur="(editor: any) => handleEditorBlur(item.id, editor)"
-                />
+              <div class="notes-section">
+                <n-divider style="margin: 16px 0 12px" />
+                <div class="editor-wrapper">
+                  <Toolbar
+                    :editor="editorInstances[item.id]"
+                    :default-config="toolbarConfig"
+                    mode="simple"
+                    class="editor-toolbar"
+                  />
+                  <Editor
+                    :default-config="getEditorConfig()"
+                    mode="simple"
+                    v-model="item._noteContent"
+                    class="editor-body"
+                    @on-created="(editor: any) => handleEditorCreated(item.id, editor)"
+                    @on-change="(editor: any) => handleEditorChange(item.id, editor)"
+                    @on-blur="(editor: any) => handleEditorBlur(item.id, editor)"
+                  />
+                </div>
               </div>
             </n-collapse-item>
           </n-collapse>
@@ -69,11 +162,15 @@
 import { ref, watch, computed, onBeforeUnmount } from 'vue'
 import {
   NModal, NTabs, NTabPane, NCollapse, NCollapseItem, NSpace,
-  NTag, NProgress, NDivider, NSpin, useMessage
+  NTag, NProgress, NDivider, NSpin, NIcon,
 } from 'naive-ui'
 import { Editor, Toolbar } from '@wangeditor/editor-for-vue'
 import type { IDomEditor, IEditorConfig } from '@wangeditor/editor'
 import '@wangeditor/editor/dist/css/style.css'
+import {
+  CheckmarkOutline, CloseOutline, RemoveOutline,
+  CheckmarkCircleOutline, TimeOutline, EllipseOutline,
+} from '@vicons/ionicons5'
 import request from '../utils/request'
 
 const props = defineProps<{
@@ -85,7 +182,6 @@ const emit = defineEmits<{
   (e: 'update:visible', val: boolean): void
 }>()
 
-const message = useMessage()
 const loading = ref(false)
 const lifecycleData = ref<any[]>([])
 const activeTab = ref('startup')
@@ -131,7 +227,10 @@ async function saveNotes(itemId: number, silent = false) {
     await request.put(`/lifecycle/notes/${itemId}`, { content })
     savedHtml[itemId] = normalizeEditorHtml(content)
     dirtyMap[itemId] = false
-    if (!silent) message.success('保存成功')
+    if (!silent) {
+      // Use a toast or subtle feedback instead of message
+      // message.success('保存成功')
+    }
   } catch {
     // error already handled by interceptor
   } finally {
@@ -176,7 +275,7 @@ watch(activeTab, async () => {
 })
 
 function destroyEditors() {
-  Object.values(editorInstances.value).forEach(editor => {
+  Object.values(editorInstances.value).forEach((editor) => {
     if (editor) {
       editor.destroy()
     }
@@ -214,17 +313,48 @@ async function fetchLifecycle() {
   }
 }
 
+// Progress calculations
 function getPhaseProgress(phase: any) {
   const allChecks = phase.steps.flatMap((item: any) => item.checks)
   if (allChecks.length === 0) return 0
   const passed = allChecks.filter((c: any) => c.is_passed === true).length
-  return Math.round(passed / allChecks.length * 100)
+  return Math.round((passed / allChecks.length) * 100)
+}
+
+function getPhasePassedCount(phase: any) {
+  const allChecks = phase.steps.flatMap((item: any) => item.checks)
+  return allChecks.filter((c: any) => c.is_passed === true).length
+}
+
+function getPhaseTotalCount(phase: any) {
+  const allChecks = phase.steps.flatMap((item: any) => item.checks)
+  return allChecks.length
 }
 
 function getItemProgress(item: any) {
   if (!item.checks || item.checks.length === 0) return 0
   const passed = item.checks.filter((c: any) => c.is_passed === true).length
-  return Math.round(passed / item.checks.length * 100)
+  return Math.round((passed / item.checks.length) * 100)
+}
+
+const overallProgress = computed(() => {
+  let total = 0
+  let passed = 0
+  lifecycleData.value.forEach((phase: any) => {
+    phase.steps.forEach((item: any) => {
+      if (item.checks) {
+        total += item.checks.length
+        passed += item.checks.filter((c: any) => c.is_passed === true).length
+      }
+    })
+  })
+  return total === 0 ? 0 : Math.round((passed / total) * 100)
+})
+
+function getCheckStatusText(is_passed: boolean | null) {
+  if (is_passed === true) return '通过'
+  if (is_passed === false) return '不通过'
+  return '未检查'
 }
 
 async function toggleCheck(check: any) {
@@ -234,29 +364,178 @@ async function toggleCheck(check: any) {
   else if (check.is_passed === true) newVal = false
   else newVal = null
 
+  const oldVal = check.is_passed
   check.is_passed = newVal
+
   try {
     await request.put(`/lifecycle/checks/${check.id}`, { is_passed: newVal })
   } catch {
     // revert on failure
-    check.is_passed = check.is_passed === true ? null : check.is_passed === false ? true : false
+    check.is_passed = oldVal
   }
 }
 </script>
 
 <style scoped>
-.lifecycle-editor {
-  width: 100%;
-  border: 1px solid #e0e0e6;
-  border-radius: 4px;
-  overflow: hidden;
+.overall-progress {
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background: #f8f9fc;
+  border-radius: 8px;
+  border: 1px solid #e8e8e8;
 }
 
+.progress-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.phase-progress-bar {
+  padding: 10px 12px;
+  margin-bottom: 12px;
+  background: #fafbfc;
+  border-radius: 6px;
+}
+
+.phase-progress-label {
+  font-size: 13px;
+  font-weight: 600;
+  color: #555;
+}
+
+.phase-progress-text {
+  font-size: 13px;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+
+.step-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+/* Checklist */
+.checklist {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.check-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background 0.15s ease;
+  outline: none;
+}
+
+.check-item:hover {
+  background: #f0f5ff;
+}
+
+.check-item:focus-visible {
+  background: #f0f5ff;
+  box-shadow: 0 0 0 2px #2080f0;
+}
+
+.check-status {
+  flex-shrink: 0;
+  padding-top: 1px;
+}
+
+.status-badge {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s ease;
+}
+
+.status-badge.is-passed {
+  background: #e6f7e6;
+  color: #18a058;
+}
+
+.status-badge.is-failed {
+  background: #fde8e8;
+  color: #d03050;
+}
+
+.status-badge.is-pending {
+  background: #f0f0f0;
+  color: #999;
+}
+
+.check-content {
+  font-size: 14px;
+  line-height: 1.6;
+  color: #333;
+  flex: 1;
+  padding-top: 2px;
+}
+
+.check-item.is-passed .check-content {
+  color: #18a058;
+}
+
+.check-item.is-failed .check-content {
+  color: #d03050;
+}
+
+/* Notes Section */
+.notes-section {
+  margin-top: 4px;
+}
+
+.editor-wrapper {
+  border: 1px solid #d9d9d9;
+  border-radius: 6px;
+  overflow: hidden;
+  transition: border-color 0.2s ease;
+}
+
+.editor-wrapper:focus-within {
+  border-color: #2080f0;
+  box-shadow: 0 0 0 2px rgba(32, 128, 240, 0.1);
+}
+
+.editor-toolbar {
+  border-bottom: 1px solid #e8e8e8;
+  background: #fafafa;
+}
+
+.editor-body {
+  height: 200px;
+  overflow-y: auto;
+}
+
+/* Override collapse content to allow editor overflow */
 :deep(.n-collapse-item__content-inner) {
   overflow: visible;
 }
 
 :deep(.w-e-toolbar) {
   flex-wrap: wrap;
+}
+
+/* Responsive */
+@media (max-width: 640px) {
+  .overall-progress {
+    padding: 10px 12px;
+  }
+
+  .phase-progress-bar {
+    padding: 8px 10px;
+  }
+
+  .editor-body {
+    height: 160px;
+  }
 }
 </style>
