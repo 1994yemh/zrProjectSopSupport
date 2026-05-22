@@ -17,7 +17,9 @@
         <n-icon size="24" class="brand-icon">
           <AppsOutline />
         </n-icon>
-        <span v-if="!collapsed" class="brand-text">中锐教育项目管理系统</span>
+        <span v-if="!collapsed" class="brand-text-wrap">
+          <span class="brand-text">中锐教育项目管理系统</span>
+        </span>
       </div>
       <n-menu
         :collapsed="collapsed"
@@ -189,9 +191,9 @@ function handleUserAction(key: string) {
 .brand-title {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 10px;
-  padding: 16px 12px;
+  justify-content: flex-start;
+  gap: 8px;
+  padding: 16px 10px;
   min-height: 64px;
   white-space: nowrap;
   border-bottom: 1px solid var(--admin-border);
@@ -208,12 +210,34 @@ function handleUserAction(key: string) {
   filter: drop-shadow(0 8px 14px rgba(22, 119, 210, 0.18));
 }
 
-.brand-text {
-  font-size: 15px;
-  font-weight: 700;
-  color: var(--admin-ink);
+.brand-text-wrap {
+  position: relative;
   overflow: hidden;
   text-overflow: ellipsis;
+  filter: drop-shadow(0 2px 3px rgba(22, 119, 210, 0.2));
+}
+
+.brand-text-wrap::after {
+  content: "";
+  position: absolute;
+  bottom: -3px;
+  left: 0;
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(32, 160, 255, 0.5) 30%, rgba(34, 199, 214, 0.4) 70%, transparent 100%);
+  border-radius: 2px;
+}
+
+.brand-text {
+  display: inline-block;
+  font-size: 17px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #0a5aa8 0%, #1677d2 35%, #2aaaff 65%, #22c7d6 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: 0.6px;
+  white-space: nowrap;
 }
 
 :deep(.n-menu) {
