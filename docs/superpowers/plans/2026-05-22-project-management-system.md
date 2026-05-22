@@ -6,7 +6,7 @@
 
 **Architecture:** 单 Vite + Vue 3 应用，通过路由前缀 `/admin/*` 和 `/kanban` 分离两端。Node.js Express 后端，SQLite 持久化，JWT 简单认证。
 
-**Tech Stack:** Vue 3 + TypeScript + Naive UI + Vite + Express + better-sqlite3 + jsonwebtoken + wangeditor
+**Tech Stack:** Vue 3 + TypeScript + Naive UI + Vite + Express + sql.js + jsonwebtoken + wangeditor
 
 **Design Spec:** `docs/superpowers/specs/2026-05-22-project-management-system-design.md`
 
@@ -1059,3 +1059,88 @@ git commit -m "feat: complete project management system"
 | 种子数据导入（课程19门 + 产品9个） | Task 2 |
 | 生命周期模板（Excel SOP 映射） | Task 2, 7 |
 | 全流程联调 | Task 15 |
+## 变更记录
+
+### 2026-05-22 分页总数显示修复
+
+- 修复范围：`src/views/admin/CourseManage.vue`、`src/views/admin/ProductManage.vue`。
+- 根因：`remote: true` 写入了分页配置对象，Naive UI DataTable 未启用远程分页，导致分页器按当前页 `data.length=10` 计算总数。
+- 执行：将 `remote` 作为 `n-data-table` 组件属性，并移除分页对象里的无效 `remote` 字段。
+- 构建验证调整：当前 TypeScript 6 环境下，`tsconfig.json` 增加 `ignoreDeprecations: "6.0"`，并移除不必要的 `tsconfig.node.json` project reference。
+- 类型验证调整：补充 `@wangeditor/editor-for-vue` 与 `window.$message` 声明，并移除 `LifecycleDialog.vue` 未使用代码。
+- 验收：后端返回 `total=20`、`pageSize=10` 时，分页器显示 `共 20 条` 且第 2 页可点击。
+
+### 2026-05-22 分页控件中文化
+
+- 修复范围：`src/App.vue`。
+- 执行：在 Naive UI `n-config-provider` 上配置 `zhCN` 和 `dateZhCN`。
+- 验收：分页器内置英文文案 `page`、`Goto` 改为中文显示。
+
+### 2026-05-22 课程实验类型修复与主题切换
+
+- 修复范围：`server/db.js`、`data.db`、`src/stores/theme.ts`、`src/App.vue`、`src/components/Layout/AdminLayout.vue`。
+- 数据修复：将 `网络安全设备配置与管理` 规范为 `eve,hardware_rack,kvm`，将 `以太网络全光技术` 规范为 `hardware_rack,kvm`。
+- 持久化策略：`server/db.js` 在服务启动时执行幂等规范化，保证已有数据库和新初始化数据库一致。
+- 主题功能：新增 Pinia theme store，管理 Naive UI 明暗主题并写入 `localStorage`。
+- 交互入口：管理端顶部用户栏增加 `更换主题` 按钮。
+
+### 2026-05-22 系统按钮图标优化
+
+- 修复范围：`src/views/admin/CourseManage.vue`、`src/views/admin/ProductManage.vue`、`src/views/admin/ProjectManage.vue`、`src/views/admin/Login.vue`、`src/components/Layout/AdminLayout.vue`。
+- 执行：基于已有 `@vicons/ionicons5` 为常用按钮增加语义图标。
+- 图标映射：新增 `AddOutline`、搜索 `SearchOutline`、编辑 `CreateOutline`、删除 `TrashOutline`、项目简介 `DocumentTextOutline`、项目进展 `TrendingUpOutline`、登录 `LogInOutline`、退出登录 `LogOutOutline`、更换主题 `ColorPaletteOutline`。
+- 验收：按钮文字保留，图标只增强识别，不替代文字。
+
+### 2026-05-22 左侧菜单图标与登录背景
+
+- 修复范围：`src/components/Layout/AdminLayout.vue`、`src/views/admin/Login.vue`、`src/assets/login-bg.svg`。
+- 执行：系统名称使用 `AppsOutline`，左侧菜单使用 `SchoolOutline`、`CubeOutline`、`FolderOpenOutline`。
+- 登录页：新增本地 SVG 背景，并通过 scoped CSS 引用。
+- 验收：菜单、系统名称、登录页背景均完成视觉增强，构建通过。
+
+### 2026-05-22 项目表单字段顺序与部署方式显示
+
+- 修复范围：`src/views/admin/ProjectManage.vue`。
+- 执行：项目表单字段顺序调整为项目名称、所需产品、所需课程、EVE实验、KVM实验、部署方式。
+- 条件显示：部署方式字段使用 `v-if="formData.is_eve || formData.is_kvm"`，仅在 EVE/KVM 任意一个开启时显示。
+- 兼容策略：部署方式默认值仍保留为 `centralized`，隐藏时不清空，避免影响后端字段约束和历史数据。
+
+### 2026-05-22 项目简介弹窗Tab化与字段返显修复
+
+- 修复范围：`src/views/admin/ProjectManage.vue`。
+- 根因：项目简介接口返回扁平结构，前端错误按 `summaryData.project` 嵌套对象读取，导致项目名称、负责人、售后人员为空。
+- 执行：基本信息字段改为读取 `summaryData.name`、`summaryData.responsible_person`、`summaryData.after_sales_person`。
+- 交互：项目简介弹窗改为 `基本信息 / 交付产品 / 交付课程` 三个 Tab。
+- 展示：交付课程实验类型支持多值中文格式化。
+
+### 2026-05-22 项目编辑返显与弹窗样式修复
+
+- 修复范围：`src/views/admin/ProjectManage.vue`、`src/components/LifecycleDialog.vue`。
+- 项目简介样式：产品/课程描述表格左侧 label 列设置 `white-space: nowrap`。
+- 编辑返显：点击编辑时调用 `GET /api/projects/:id`，从详情中的 `products[].id`、`courses[].id` 回填多选字段。
+- 类型回填：`is_eve`、`is_kvm` 转为 boolean，确保 Naive UI Switch 正确显示。
+- 进展弹窗：`n-modal` 增加内容区最大高度和 `overflowY: auto`，避免多折叠项展开时溢出。
+- 富文本：编辑器容器宽度稳定，工具栏允许换行。
+
+### 2026-05-22 富文本保存与项目卡片分页优化
+
+- 修复范围：`src/components/LifecycleDialog.vue`、`src/views/admin/ProjectManage.vue`。
+- 富文本保存：维护 `savedHtml` 快照，`onChange` 时规范化 HTML 并与快照比较，内容无变化不保存。
+- 保存提示：保存成功后提示 `保存成功`，同时更新快照。
+- 备注分割线：去掉分割线上的 `备注` 文案。
+- 项目卡片：新增浅蓝毛玻璃样式、hover 上浮、柔和阴影和微光边框。
+- 项目分页：改用 `item-count`、`page-size`、`page-sizes`、`prefix`、`show-size-picker`、`show-quick-jumper`，与课程/产品管理分页体验统一。
+
+### 2026-05-22 富文本保存策略二次优化（降低提示噪音）
+
+- 修复范围：`src/components/LifecycleDialog.vue`。
+- 根因：此前保存触发点与输入事件绑定过紧，导致编辑过程中出现高频保存提示，影响录入体验。
+- 执行：
+  - 引入 `savedHtml`、`pendingHtml`、`dirtyMap`、`savingMap` 四组状态，改为“脏数据驱动保存”。
+  - `onChange` 仅更新脏状态，不直接触发接口调用。
+  - `onBlur` 触发显式保存（提示 `保存成功`）。
+  - 折叠切换、Tab 切换、弹窗关闭、组件卸载时统一执行静默保存（不提示）。
+- 验收：
+  - 输入过程中不再频繁弹出保存成功提示。
+  - 内容未变化时不调用保存接口。
+  - 用户离开当前编辑上下文前，修改内容可自动持久化。

@@ -18,6 +18,7 @@ async function initDB() {
 
   createTables()
   seedData()
+  normalizeCourseData()
   saveDB()
 }
 
@@ -164,9 +165,9 @@ function seedData() {
     { name: 'IPv6网络技术与应用', type: 'eve', image: 'Ruijieroute-1.0、Ruijieswitch-1.0', desc: '满足所有EVE环境实训，每组需要6线程，12G内存（每台设备1线程2G内存）' },
     { name: 'SDN技术与应用', type: 'kvm', image: 'SDN-server.qcow2、ryu.qcow2、mininet.qcow2、onos.qcow2、Cbench.qcow2', desc: '满足所有KVM环境实训，每组需要12线程，12G内存（每台设备4线程4G内存）' },
     { name: '锐捷SDN技术应用实践', type: 'hardware_rack', image: 'SDN-server.qcow2', desc: '无' },
-    { name: '以太网络全光技术', type: 'hardware_rack', image: 'Ubuntu-22.04.3-live-server.iso', desc: '1.满足所有硬件机架实训，每组需要2台二层交换机、1台模块化8口透明汇聚、2台接入测千兆采光模块、2台三层交换机、1台透明汇聚光裂变器扩展模块、2台核心侧SFG千兆超聚合彩光模块、1台虚拟Linux、1台服务器、2台拓展模块\n2.满足所有KVM环境实训，每组需要4线程，4G内存（每台设备4线程4G内存）' },
+    { name: '以太网络全光技术', type: 'hardware_rack,kvm', image: 'Ubuntu-22.04.3-live-server.iso', desc: '1.满足所有硬件机架实训，每组需要2台二层交换机、1台模块化8口透明汇聚、2台接入测千兆采光模块、2台三层交换机、1台透明汇聚光裂变器扩展模块、2台核心侧SFG千兆超聚合彩光模块、1台虚拟Linux、1台服务器、2台拓展模块\n2.满足所有KVM环境实训，每组需要4线程，4G内存（每台设备4线程4G内存）' },
     { name: '网络自动化运维', type: 'eve', image: 'Ruijieroute-1.0、Ruijieswitch-1.0、linux-ubuntu', desc: '满足所有EVE环境实训，每组需要8线程，16G内存（每台网络设备1线程2G内存/每台服务设备4线程4G内存）' },
-    { name: '网络安全设备配置与管理', type: 'eve', image: 'Ruijiefirewall-V1.03、win-10、EG3210 V2、pfsenseInsiso.iso、windows7.qcow2、pfsense-2.7.2、linux-Center、Ruijieroute-1.0、Ruijieswitch-1.0、linux-JumpServer', desc: '满足所有EVE环境实训，每组需要23线程，26G内存（每台网络设备1线程2G内存/每台服务设备4线程4G内存）' },
+    { name: '网络安全设备配置与管理', type: 'eve,hardware_rack,kvm', image: 'Ruijiefirewall-V1.03、win-10、EG3210 V2、pfsenseInsiso.iso、windows7.qcow2、pfsense-2.7.2、linux-Center、Ruijieroute-1.0、Ruijieswitch-1.0、linux-JumpServer', desc: '满足所有EVE环境实训，每组需要23线程，26G内存（每台网络设备1线程2G内存/每台服务设备4线程4G内存）' },
     { name: '云计算基础技术与部署', type: 'kvm', image: 'openstack-yw.qcow2', desc: '满足所有KVM环境实训，每组需要20线程，20G内存（设备8线程8G内存和2线程2G内存）' },
     { name: '智慧运维管理平台实战', type: 'hardware_rack', image: '无', desc: '满足所有KVM环境实训，每组需要20线程，20G内存（设备8线程8G内存和2线程2G内存）' },
     { name: 'WEB渗透测试与分析', type: 'kvm', image: 'windows7.qcow2、Kali-1.qcow2', desc: '满足所有KVM环境实训，每组需要16线程，16G内存（每台设备4线程4G内存）' },
@@ -281,6 +282,20 @@ function seedData() {
     db.run(
       "INSERT INTO lifecycle_templates (phase, step_name, check_items_json, sort_order) VALUES (?, ?, ?, ?)",
       [t.phase, t.step, JSON.stringify(t.checks), t.order]
+    )
+  }
+}
+
+function normalizeCourseData() {
+  const courseTypeFixes = [
+    ['以太网络全光技术', 'hardware_rack,kvm'],
+    ['网络安全设备配置与管理', 'eve,hardware_rack,kvm'],
+  ]
+
+  for (const [name, experimentType] of courseTypeFixes) {
+    db.run(
+      'UPDATE courses SET experiment_type = ?, updated_at = CURRENT_TIMESTAMP WHERE name = ?',
+      [experimentType, name]
     )
   }
 }
