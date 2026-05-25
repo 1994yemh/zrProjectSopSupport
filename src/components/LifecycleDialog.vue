@@ -72,11 +72,12 @@
               >
                 <template #header>
                   <div class="step-header">
-                    <n-space align="center" :size="8" class="step-header-left">
+                    <div class="step-header-left">
                       <n-icon
                         size="18"
                         :component="getItemProgress(item) === 100 ? CheckmarkCircleOutline : getItemProgress(item) > 0 ? TimeOutline : EllipseOutline"
                         :color="getItemProgress(item) === 100 ? '#18a058' : getItemProgress(item) > 0 ? '#f0a020' : '#c0c4cc'"
+                        class="step-status-icon"
                       />
                       <span class="step-name">{{ item.step_name }}</span>
                       <n-tag
@@ -95,7 +96,7 @@
                       >
                         {{ getItemProgress(item) }}%
                       </n-tag>
-                    </n-space>
+                    </div>
                     <div class="step-actions">
                       <n-button size="tiny" quaternary @click.stop="openEditStep(item)" title="编辑步骤">
                         <template #icon><n-icon size="14" :component="CreateOutline" /></template>
@@ -784,8 +785,18 @@ async function toggleCheck(check: any) {
 }
 
 .step-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   min-width: 0;
   flex: 1;
+  line-height: 1;
+}
+
+.step-status-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
 }
 
 .step-name {

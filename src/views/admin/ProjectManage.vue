@@ -81,7 +81,7 @@
             <div class="project-footer">
               <n-space align="center" justify="space-between" style="width: 100%">
                 <n-tag :type="phaseTagType(project.current_phase)" size="small" round>
-                  {{ project.current_phase || '项目启动' }}
+                  {{ formatPhaseLabel(project.current_phase) }}
                 </n-tag>
                 <span class="project-date">{{ formatShortDate(project.created_at) }}</span>
               </n-space>
@@ -391,15 +391,29 @@ const formData = reactive({
 const showSummaryModal = ref(false)
 const summaryData = ref<any>(null)
 
+const phaseLabelMap: Record<string, string> = {
+  startup: '项目启动',
+  planning: '项目规划',
+  execution: '项目执行',
+  monitoring: '项目监控',
+  closure: '项目收尾',
+  completed: '已完成',
+}
+
 function phaseTagType(phase: string) {
   const map: Record<string, string> = {
-    '项目启动': 'default',
-    '项目规划': 'info',
-    '项目执行': 'warning',
-    '项目监控': 'success',
-    '项目收尾': 'error',
+    startup: 'default',
+    planning: 'info',
+    execution: 'warning',
+    monitoring: 'success',
+    closure: 'error',
+    completed: 'success',
   }
   return (map[phase] || 'default') as any
+}
+
+function formatPhaseLabel(phase: string) {
+  return phaseLabelMap[phase] || phase
 }
 
 function formatExperimentType(value: string) {
