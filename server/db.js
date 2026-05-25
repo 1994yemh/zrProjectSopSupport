@@ -77,10 +77,14 @@ function createTables() {
       after_sales_person TEXT DEFAULT '',
       delivery_start_date TEXT DEFAULT '',
       delivery_end_date TEXT DEFAULT '',
+      template_project_id INTEGER DEFAULT NULL,
       created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
       updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
     );
   `)
+
+  // Migrate existing databases: add column if missing
+  try { db.run('ALTER TABLE projects ADD COLUMN template_project_id INTEGER DEFAULT NULL') } catch (e) {}
 
   db.run(`
     CREATE TABLE IF NOT EXISTS project_products (

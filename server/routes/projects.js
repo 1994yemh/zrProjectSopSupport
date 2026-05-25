@@ -163,7 +163,8 @@ function createProject(req, res) {
     name, is_kvm, is_eve, deploy_method,
     responsible_person, after_sales_person,
     delivery_start_date, delivery_end_date,
-    product_ids = [], course_ids = []
+    product_ids = [], course_ids = [],
+    template_project_id = null
   } = req.body
 
   if (!name) return res.json({ code: 1, message: '项目名称必填' })
@@ -172,11 +173,12 @@ function createProject(req, res) {
 
   // 1. Create project
   db.run(
-    `INSERT INTO projects (name, is_kvm, is_eve, deploy_method, responsible_person, after_sales_person, delivery_start_date, delivery_end_date)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO projects (name, is_kvm, is_eve, deploy_method, responsible_person, after_sales_person, delivery_start_date, delivery_end_date, template_project_id)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
     [name, is_kvm ? 1 : 0, is_eve ? 1 : 0, deploy_method || 'centralized',
      responsible_person || '', after_sales_person || '',
-     delivery_start_date || '', delivery_end_date || '']
+     delivery_start_date || '', delivery_end_date || '',
+     template_project_id || null]
   )
 
   const projectId = getLastInsertId()
@@ -191,26 +193,64 @@ function createProject(req, res) {
     db.run('INSERT INTO project_courses (project_id, course_id) VALUES (?, ?)', [projectId, cid])
   }
 
-  // 4. Copy lifecycle templates to project lifecycle
-  const templates = queryAll('SELECT * FROM lifecycle_templates ORDER BY phase, sort_order')
-  for (const tmpl of templates) {
-    db.run(
-      'INSERT INTO project_lifecycle (project_id, phase, step_name, sort_order) VALUES (?, ?, ?, ?)',
-      [projectId, tmpl.phase, tmpl.step_name, tmpl.sort_order]
+  // 4. Create lifecycle data
+  if (template_project_id) {
+    // Copy from selected project template
+    const srcPhases = queryAll(
+      'SELECT phase, label, sort_order FROM project_phases WHERE project_id=? ORDER BY sort_order',
+      [template_project_id]
     )
-    const plId = getLastInsertId()
-
-    // Create check items from template
-    const checks = JSON.parse(tmpl.check_items_json)
-    for (let i = 0; i < checks.length; i++) {
+    for (const sp of srcPhases) {
       db.run(
-        'INSERT INTO lifecycle_checks (project_lifecycle_id, check_content, is_passed, sort_order) VALUES (?, ?, NULL, ?)',
-        [plId, checks[i], i + 1]
+        'INSERT OR IGNORE INTO project_phases (project_id, phase, label, sort_order) VALUES (?, ?, ?, ?)',
+        [projectId, sp.phase, sp.label, sp.sort_order]
       )
     }
 
-    // Create empty note for this step
-    db.run('INSERT INTO lifecycle_notes (project_lifecycle_id, content) VALUES (?, ?)', [plId, ''])
+    const srcSteps = queryAll(
+      'SELECT id, phase, step_name, sort_order FROM project_lifecycle WHERE project_id=? ORDER BY sort_order',
+      [template_project_id]
+    )
+    for (const ss of srcSteps) {
+      db.run(
+        'INSERT INTO project_lifecycle (project_id, phase, step_name, sort_order) VALUES (?, ?, ?, ?)',
+        [projectId, ss.phase, ss.step_name, ss.sort_order]
+      )
+      const newStepId = getLastInsertId()
+
+      const srcChecks = queryAll(
+        'SELECT check_content, sort_order FROM lifecycle_checks WHERE project_lifecycle_id=? ORDER BY sort_order',
+        [ss.id]
+      )
+      for (const sc of srcChecks) {
+        db.run(
+          'INSERT INTO lifecycle_checks (project_lifecycle_id, check_content, is_passed, sort_order) VALUES (?, ?, NULL, ?)',
+          [newStepId, sc.check_content, sc.sort_order]
+        )
+      }
+
+      db.run('INSERT INTO lifecycle_notes (project_lifecycle_id, content) VALUES (?, ?)', [newStepId, ''])
+    }
+  } else {
+    // Default: copy from lifecycle_templates
+    const templates = queryAll('SELECT * FROM lifecycle_templates ORDER BY phase, sort_order')
+    for (const tmpl of templates) {
+      db.run(
+        'INSERT INTO project_lifecycle (project_id, phase, step_name, sort_order) VALUES (?, ?, ?, ?)',
+        [projectId, tmpl.phase, tmpl.step_name, tmpl.sort_order]
+      )
+      const plId = getLastInsertId()
+
+      const checks = JSON.parse(tmpl.check_items_json)
+      for (let i = 0; i < checks.length; i++) {
+        db.run(
+          'INSERT INTO lifecycle_checks (project_lifecycle_id, check_content, is_passed, sort_order) VALUES (?, ?, NULL, ?)',
+          [plId, checks[i], i + 1]
+        )
+      }
+
+      db.run('INSERT INTO lifecycle_notes (project_lifecycle_id, content) VALUES (?, ?)', [plId, ''])
+    }
   }
 
   saveDB()

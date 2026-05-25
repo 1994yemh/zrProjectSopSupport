@@ -155,6 +155,16 @@
         <n-form-item label="项目名称" path="name">
           <n-input v-model:value="formData.name" placeholder="请输入项目名称" />
         </n-form-item>
+        <n-form-item label="引用项目模版">
+          <n-select
+            v-model:value="formData.template_project_id"
+            :options="templateProjectOptions"
+            :placeholder="editingId ? (formData.template_project_id ? '' : '未引用模版') : '可选，选择已有项目作为进展模版'"
+            :disabled="!!editingId"
+            clearable
+            filterable
+          />
+        </n-form-item>
         <n-form-item label="所需产品">
           <n-select
             v-model:value="formData.product_ids"
@@ -385,7 +395,10 @@ const formData = reactive({
   delivery_end_date: null as number | null,
   product_ids: [] as number[],
   course_ids: [] as number[],
+  template_project_id: null as number | null,
 })
+
+const templateProjectOptions = ref<{ label: string; value: number }[]>([])
 
 // Summary
 const showSummaryModal = ref(false)
@@ -473,9 +486,10 @@ function handleSearch() {
 }
 
 async function fetchOptions() {
-  const [pRes, cRes]: any[] = await Promise.all([
+  const [pRes, cRes, projRes]: any[] = await Promise.all([
     request.get('/products/all'),
     request.get('/courses/all'),
+    request.get('/projects/all'),
   ])
   productOptions.value = pRes.data.map((p: any) => ({
     label: p.name,
@@ -484,6 +498,10 @@ async function fetchOptions() {
   courseOptions.value = cRes.data.map((c: any) => ({
     label: c.name,
     value: c.id,
+  }))
+  templateProjectOptions.value = projRes.data.map((p: any) => ({
+    label: p.name,
+    value: p.id,
   }))
 }
 
@@ -499,6 +517,7 @@ function resetForm() {
     delivery_end_date: null,
     product_ids: [],
     course_ids: [],
+    template_project_id: null,
   })
 }
 
@@ -527,6 +546,7 @@ async function openEditModal(project: any) {
       : null,
     product_ids: res.data.products.map((item: any) => item.id),
     course_ids: res.data.courses.map((item: any) => item.id),
+    template_project_id: detail.template_project_id || null,
   })
   showFormModal.value = true
 }
@@ -540,6 +560,12 @@ async function handleFormSubmit() {
 
   if (!formData.name) {
     message.warning('请输入项目名称')
+    return
+  }
+
+  if (formData.delivery_start_date && formData.delivery_end_date
+      && formData.delivery_end_date <= formData.delivery_start_date) {
+    message.warning('截止时间必须大于开始时间')
     return
   }
 
@@ -560,6 +586,7 @@ async function handleFormSubmit() {
       message.success('创建成功')
       showFormModal.value = false
       fetchProjects()
+      fetchOptions()
       // Show summary after create
       setTimeout(() => showSummary(res.data.id), 200)
     }
@@ -593,6 +620,7 @@ function handleDelete(project: any) {
       await request.delete(`/projects/${project.id}`)
       message.success('删除成功')
       fetchProjects()
+      fetchOptions()
     },
   })
 }
