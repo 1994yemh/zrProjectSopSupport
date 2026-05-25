@@ -72,8 +72,14 @@ function listProjects(req, res) {
   const whereSql = hasKeyword ? 'WHERE name LIKE ?' : ''
   const whereParams = hasKeyword ? [`%${keyword}%`] : []
 
-  const totalResult = queryOne(`SELECT COUNT(*) as total FROM projects ${whereSql}`, whereParams)
-  const total = totalResult ? totalResult.total : 0
+  // Count query using db.exec (consistent with products.js)
+  const db = getDB()
+  const countSql = `SELECT COUNT(*) as total FROM projects ${whereSql}`
+  const countResult = db.exec(countSql, hasKeyword ? whereParams : [])
+  let total = 0
+  if (countResult && countResult.length > 0 && countResult[0].values.length > 0) {
+    total = countResult[0].values[0][0]
+  }
 
   const list = queryAll(
     `SELECT * FROM projects ${whereSql} ORDER BY id DESC LIMIT ? OFFSET ?`,

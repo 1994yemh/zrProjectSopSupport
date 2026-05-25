@@ -431,6 +431,8 @@ async function fetchProjects() {
     })
     projects.value = res.data.list
     projectPagination.itemCount = res.data.total
+  } catch (err: any) {
+    console.error('获取项目列表失败:', err)
   } finally {
     loading.value = false
   }
@@ -447,9 +449,9 @@ function handleProjectPageSizeChange(pageSize: number) {
   fetchProjects()
 }
 
-let searchTimer: ReturnType<typeof setTimeout> | null = null
+let searchTimer: any
 function handleSearch() {
-  if (searchTimer) clearTimeout(searchTimer)
+  clearTimeout(searchTimer)
   searchTimer = setTimeout(() => {
     projectPagination.page = 1
     fetchProjects()
