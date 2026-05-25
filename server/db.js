@@ -142,6 +142,18 @@ function createTables() {
       FOREIGN KEY (project_lifecycle_id) REFERENCES project_lifecycle(id)
     );
   `)
+
+  db.run(`
+    CREATE TABLE IF NOT EXISTS project_phases (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      project_id INTEGER NOT NULL,
+      phase TEXT NOT NULL,
+      label TEXT NOT NULL,
+      sort_order INTEGER DEFAULT 0,
+      UNIQUE(project_id, phase),
+      FOREIGN KEY (project_id) REFERENCES projects(id)
+    );
+  `)
 }
 
 function seedData() {

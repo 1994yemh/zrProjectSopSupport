@@ -267,6 +267,7 @@ function deleteProject(req, res) {
     db.run('DELETE FROM lifecycle_notes WHERE project_lifecycle_id=?', [pl.id])
   }
   db.run('DELETE FROM project_lifecycle WHERE project_id=?', [id])
+  db.run('DELETE FROM project_phases WHERE project_id=?', [id])
   db.run('DELETE FROM project_products WHERE project_id=?', [id])
   db.run('DELETE FROM project_courses WHERE project_id=?', [id])
   db.run('DELETE FROM projects WHERE id=?', [id])
